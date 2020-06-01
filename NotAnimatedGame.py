@@ -140,6 +140,7 @@ def get_player(player_type, module):
     return player
 
 def create_flags():
+    # 'time_to_make_a_move': 2
     d = {'time_to_make_a_move': 2, 'map': 0, 'time_to_set_game_param': 2, 'print_in_terminal': True}
     flags_input = sys.argv[3:]
     # assert len(flags_input) % 2 == 0, 'bad flags'
@@ -166,13 +167,12 @@ def create_flags():
         flags_input = flags_input[2:]
     return d
 
-
 if __name__ == '__main__':
     # print('runing')
     args = sys.argv.copy()
 
-    player_1_type = args[1]
-    player_2_type = args[2]
+    player_1_type = "MinimaxPlayer"
+    player_2_type = "LivePlayer"
     module_1 = __import__(player_1_type)
     module_2 = __import__(player_2_type)
     player_1 = get_player(player_1_type, module_1)
@@ -190,3 +190,28 @@ if __name__ == '__main__':
     print('Players (besides LivePlayer) have', time_to_make_a_move, 'seconds to make a move')
     NotAnimatedGame(map[0], map[1], map[2], player_1=player_1, player_2=player_2,
                      time_to_make_a_move=time_to_make_a_move, print_game_in_terminal=print_in_terminal)
+
+    # if __name__ == '__main__':
+    #     # print('runing')
+    #     args = sys.argv.copy()
+    #
+    #     player_1_type = args[1]
+    #     player_2_type = args[2]
+    #     module_1 = __import__(player_1_type)
+    #     module_2 = __import__(player_2_type)
+    #     player_1 = get_player(player_1_type, module_1)
+    #     player_2 = get_player(player_2_type, module_2)
+    #
+    #     d = create_flags()
+    #     map_index = d['map']
+    #     map = maps[map_index]
+    #     time_to_make_a_move = d['time_to_make_a_move']
+    #     print_in_terminal = d['print_in_terminal']
+    #
+    #     print('Starting Game')
+    #     print(player_1_type, 'VS', player_2_type)
+    #     print('Board', map_index)
+    #     print('Players (besides LivePlayer) have', time_to_make_a_move, 'seconds to make a move')
+    #     NotAnimatedGame(map[0], map[1], map[2], player_1=player_1, player_2=player_2,
+    #                     time_to_make_a_move=time_to_make_a_move, print_game_in_terminal=print_in_terminal)
+
