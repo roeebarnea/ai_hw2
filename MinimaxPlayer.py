@@ -10,7 +10,7 @@ class MinimaxPlayer:
         self.board = None
         self.directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 
-        self.buffer = 10 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
+        self.buffer = 50 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
         self.time, self.start = 0, 0  # total time given for a run and start time, initialized in each call
 
     def set_game_params(self, board):
@@ -59,7 +59,7 @@ class MinimaxPlayer:
             return lose
 
         # TODO: Figure out better heuristics, mine are shit :(
-        return moves - rival_moves - heuristics.dist(self.loc, self.rival)
+        return self.h1()
 
     def time_left(self):
         #   Compute time left for the run in milliseconds
@@ -69,7 +69,8 @@ class MinimaxPlayer:
         self.time, self.start = t, time.time()
         depth = 1
         best_move, best_score = None, float('-inf')
-        while self.time_left() > self.buffer:  # At least #buffer ms left to run
+        limit = self.board.size
+        while self.time_left() > self.buffer and depth <= limit:  # At least #buffer ms left to run
             # print(self.time_left())
             # print(depth)
             best_move, best_score, leaves = self.RBMinimax(depth, 1)
@@ -150,4 +151,11 @@ class MinimaxPlayer:
                 visited.append(m)
                 moves += self.get_moves(m)
         return count
+
+    def h1(self):
+        size = self.board.shape
+        moves = len(self.get_moves(self.loc))
+        rival = len(self.get_moves(self.rival))
+        return moves - rival - heuristics.dist(self.loc, self.rival) - heuristics.center_dist(self.loc, size)
+
 

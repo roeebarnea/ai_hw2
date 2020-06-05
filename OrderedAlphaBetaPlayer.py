@@ -3,7 +3,7 @@ import heuristics
 from random import shuffle
 
 
-class AlphaBetaPlayer:
+class OrderedAlphaBetaPlayer:
     def __init__(self):
         self.loc = None
         self.rival = None
@@ -12,6 +12,9 @@ class AlphaBetaPlayer:
 
         self.buffer = 10 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
         self.time, self.start = 0, 0  # total time given for a run and start time, initialized in each call
+
+        # Minimax values of first level of sons for this run
+        self.sons = dict()
 
     def set_game_params(self, board):
         self.board = board
@@ -67,11 +70,12 @@ class AlphaBetaPlayer:
 
     def make_move(self, t):
         self.time, self.start = t, time.time()
+        self.sons.clear()
         depth = 1
         best_move, best_score = None, float('-inf')
         limit = self.board.size
         while self.time_left() > self.buffer and depth <= limit:  # At least #buffer ms left to run
-            best_move, best_score, leaves = self.RBMinimax(depth, 1, float('-inf'), float('inf'))
+            best_move, best_score, leaves = self.RBMinimax(depth, 1, float('-inf'), float('inf'), True)
             depth += 1
         d = (best_move[0] - self.loc[0], best_move[1] - self.loc[1])
         # print(d)
@@ -83,7 +87,17 @@ class AlphaBetaPlayer:
         self.board[self.rival] = -1
         self.rival = loc
 
-    def RBMinimax(self, depth, agent, alpha, beta):
+    def get_sons(self):
+        # Sons dict is cleared at the start of each make_move calll, so if it's empty we initialize it with the sons
+        if not self.sons:
+            self.sons = {move: 0 for move in self.get_moves(self.loc)}
+            return self.sons.keys()
+        # print("sons")
+        # Otherwise, sons is already initialized with a previous iteration's values - return the possible moves sorted
+        return sorted(self.sons, key=lambda x: x[1], reverse=False)
+
+
+    def RBMinimax(self, depth, agent, alpha, beta, sons=False):
         # If we're out of time or the state is final, finish up
         if self.time_left() <= self.buffer or self.is_final(depth, agent):
             return self.loc, self.score(), 1
@@ -94,7 +108,7 @@ class AlphaBetaPlayer:
         if agent == 1:
             curr_max = float('-inf')
             last_loc = self.loc
-            moves = self.get_moves(last_loc)
+            moves = self.get_sons() if sons else self.get_moves(last_loc)
             self.board[last_loc] = -1
 
             for d in moves:
@@ -107,6 +121,8 @@ class AlphaBetaPlayer:
 
                 leaves += leaf
                 self.board[d] = 0
+                if sons:
+                    self.sons[d] = score
 
                 alpha = max(curr_max, alpha)
                 if curr_max >= beta:
@@ -161,4 +177,9 @@ class AlphaBetaPlayer:
                 moves += self.get_moves(m)
         return count
 
+    def h1(self):
+        size = self.board.shape
+        moves = len(self.get_moves(self.loc))
+        rival = len(self.get_moves(self.rival))
+        return moves - rival - heuristics.dist(self.loc, self.rival) - heuristics.center_dist(self.loc, size)
 
