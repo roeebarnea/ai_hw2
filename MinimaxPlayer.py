@@ -59,7 +59,7 @@ class MinimaxPlayer:
             return lose
 
         # TODO: Figure out better heuristics, mine are shit :(
-        return self.h1()
+        return heuristics.h4(self, moves, rival_moves)
 
     def time_left(self):
         #   Compute time left for the run in milliseconds
@@ -150,7 +150,7 @@ class MinimaxPlayer:
                 count += 1
                 visited.append(m)
                 moves += self.get_moves(m)
-        return count
+        return count/(depth**2)
 
     def h1(self):
         size = self.board.shape
