@@ -44,7 +44,6 @@ def get_neighbours(board, loc):
     return neighbours
 
 
-
 def dijkistra_matrix(board, loc):
     visited = numpy.zeros(board.size)
     dist = numpy.zeros(board.size)
@@ -72,6 +71,31 @@ def dijkistra_matrix(board, loc):
 
     return dist
 
+def h3(player):
+    loc1 = player.loc
+    loc2 = player.rival
+    board = player.board
+    dist1 = dijkistra_matrix(board, loc1)
+    dist2 = dijkistra_matrix(board, loc2)
+    count1 = 0
+    count2 = 0
+    for row in range(0, board.size[0]):
+        for col in range(0, board.size[1]):
+            if dist1[row, col] == numpy.inf and dist2[row, col] == numpy.inf :
+                continue
+            if dist1[row, col] == numpy.inf:
+                count2 += 1
+                continue
+            if dist2[row, col] == numpy.inf:
+                count1 += 1
+                continue
+            if dist1[row, col] < dist2[row, col]:
+                count1 += 1
+                continue
+            if dist1[row, col] < dist2[row, col]:
+                count2 += 1
+                continue
+    return count1 - count2
 
 def print_board_to_terminal(board):
     # print(board_to_print)
