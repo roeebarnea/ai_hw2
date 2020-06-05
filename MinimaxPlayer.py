@@ -59,7 +59,7 @@ class MinimaxPlayer:
             return lose
 
         # TODO: Figure out better heuristics, mine are shit :(
-        return heuristics.h4(self, moves, rival_moves)
+        return heuristics.h_minimax(self)
 
     def time_left(self):
         #   Compute time left for the run in milliseconds

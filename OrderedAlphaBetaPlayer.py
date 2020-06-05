@@ -62,7 +62,7 @@ class OrderedAlphaBetaPlayer:
             return lose
 
         # TODO: Figure out better heuristics, mine are shit :(
-        return heuristics.h3(self)
+        return heuristics.h_minimax(self)
 
     def time_left(self):
         #   Compute time left for the run in milliseconds
