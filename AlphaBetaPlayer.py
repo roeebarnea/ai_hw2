@@ -3,7 +3,7 @@ import heuristics
 from random import shuffle
 
 
-class MinimaxPlayer:
+class AlphaBetaPlayer:
     def __init__(self):
         self.loc = None
         self.rival = None
@@ -59,7 +59,7 @@ class MinimaxPlayer:
             return lose
 
         # TODO: Figure out better heuristics, mine are shit :(
-        return moves - rival_moves - heuristics.dist(self.loc, self.rival)
+        return moves - rival_moves - heuristics.center_dist(self.loc, self.board.shape)
 
     def time_left(self):
         #   Compute time left for the run in milliseconds
@@ -72,7 +72,7 @@ class MinimaxPlayer:
         while self.time_left() > self.buffer:  # At least #buffer ms left to run
             # print(self.time_left())
             # print(depth)
-            best_move, best_score, leaves = self.RBMinimax(depth, 1)
+            best_move, best_score, leaves = self.RBMinimax(depth, 1, float('-inf'), float('inf'))
             depth += 1
         d = (best_move[0] - self.loc[0], best_move[1] - self.loc[1])
         # print(d)
@@ -84,7 +84,7 @@ class MinimaxPlayer:
         self.board[self.rival] = -1
         self.rival = loc
 
-    def RBMinimax(self, depth, agent):
+    def RBMinimax(self, depth, agent, alpha, beta):
         # If we're out of time or the state is final, finish up
         if self.time_left() <= self.buffer or self.is_final(depth, agent):
             return self.loc, self.score(), 1
@@ -101,12 +101,18 @@ class MinimaxPlayer:
             for d in moves:
                 self.loc = d
                 self.board[d] = 1
-                loc, score, leaf = self.RBMinimax(depth - 1, 2)
+                loc, score, leaf = self.RBMinimax(depth - 1, 2, alpha, beta)
                 if score >= curr_max:
                     curr_max = score
                     best_move = d
+
                 leaves += leaf
                 self.board[d] = 0
+
+                alpha = max(curr_max, alpha)
+                if curr_max >= beta:
+                    curr_max = float('inf')
+                    break
 
             self.loc = last_loc
             self.board[last_loc] = 1
@@ -123,13 +129,18 @@ class MinimaxPlayer:
                 #   Edit state
                 self.rival = d
                 self.board[d] = 2
-                loc, score, leaf = self.RBMinimax(depth - 1, 1)
+                loc, score, leaf = self.RBMinimax(depth - 1, 1, alpha, beta)
                 if score <= curr_min:
                     curr_min = score
                     best_move = d
                 leaves += leaf
                 #   Revert map value
                 self.board[d] = 0
+
+                beta = min(curr_min, beta)
+                if curr_min <= alpha:
+                    curr_min = float('-inf')
+                    break
 
             #   Revert to current state
             self.rival = last_loc
