@@ -1,9 +1,17 @@
 import time
+import heuristics
+from random import shuffle
+
+
 class MinimaxPlayer:
     def __init__(self):
         self.loc = None
+        self.rival = None
         self.board = None
         self.directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+
+        self.buffer = 10 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
+        self.time, self.start = 0, 0  # total time given for a run and start time, initialized in each call
 
     def set_game_params(self, board):
         self.board = board
@@ -11,153 +19,135 @@ class MinimaxPlayer:
             for j, val in enumerate(row):
                 if val == 1:
                     self.loc = (i, j)
+                elif val == 2:
+                    self.rival = (i, j)
+
+                # Getting both our location and rival's location for easier calculations
+                if self.loc and self.rival:
                     break
 
-    # return the position of player 1
-    def position_of_1(self, board):
-        for i, row in enumerate(board):
-            for j, val in enumerate(row):
-                if val == 1:
-                    return i, j
+    def get_moves(self, loc):
+        i, j = loc
+        moves = [(i + x, j + y) for x, y in self.directions if self.is_legal((i + x, j + y))]
+        # shuffle(moves)
+        return moves
 
-    #return the position of player 2
-    def position_of_2(self, board):
-        for i, row in enumerate(board):
-            for j, val in enumerate(row):
-                if val == 2:
-                    return i, j
+    def is_legal(self, loc):
+        i, j = loc
+        h, w = self.board.shape
+        # Check whether in the board's limits and free to use
+        return 0 <= i < h and 0 <= j < w and self.board[loc] == 0
 
-    # check if the board is in final state
-    def is_final_state(self, board):
-        i1, j1 = self.position_of_1(board)
-        i2, j2 = self.position_of_2(board)
-        if i1+1 <= len(board)-1:
-            if board[i1+1,j1] == 0:
-                return False
-        if i1-1 >= 0:
-            if board[i1-1,j1] == 0:
-                return False
-        if j1+1 <= len(board)-1:
-            if board[i1,j1+1] == 0:
-                return False
-        if j1-1 >= 0:
-            if board[i1,j1-1] == 0:
-                return False
-        if i2+1 <= len(board)-1:
-            if board[i2+1,j2] == 0:
-                return False
-        if i2-1 >= 0:
-            if board[i2-1,j2] == 0:
-                return False
-        if j2+1 <= len(board)-1:
-            if board[i2,j2+1] == 0:
-                return False
-        if j2-1 >= 0:
-            if board[i2,j2-1] == 0:
-                return False
-        return True
+    def is_final(self, depth, turn):
+        # A state is final for our run when we've reached max depth and when the current player is out of turns
+        if depth == 0:
+            return True
+        if turn == 1 and not self.get_moves(self.loc):
+            return True
+        elif turn == 2 and not self.get_moves(self.rival):
+            return True
+        return False
 
-    def state_score(self, board, loc):
-        num_steps_available = 0
-        for d in self.directions:
-            i = loc[0] + d[0]
-            j = loc[1] + d[1]
-            if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j] == 0:  # then move is legal
-                num_steps_available += 1
+    def score(self):
+        moves = len(self.get_moves(self.loc))
+        rival_moves = len(self.get_moves(self.rival))
+        win, lose = float('inf'), float('-inf')
 
-        if num_steps_available == 0:
-            return -1
-        else:
-            return 4 - num_steps_available
+        if not rival_moves and moves:       # Rival is out of moves but we're not
+            return win
+        elif not moves and rival_moves:     # We're out of moves but rival isn't
+            return lose
 
-    def count_ones(self, board):
-        counter = 0
-        for i, row in enumerate(board):
-            for j, val in enumerate(row):
-                if val == 1:
-                    counter += 1
-        return counter
+        # TODO: Figure out better heuristics, mine are shit :(
+        return moves - rival_moves - heuristics.dist(self.loc, self.rival) + self.future_moves(self.loc, 4)
 
-    def h_num_of_moves(self, board, loc):
-        num_steps_available = 0
-        for d in self.directions:
-            i = loc[0] + d[0]
-            j = loc[1] + d[1]
-            if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j] == 0:  # then move is legal
-                num_steps_available += 1
-        return  num_steps_available
+    def time_left(self):
+        #   Compute time left for the run in milliseconds
+        return (self.time - (time.time() - self.start)) * 1000
 
-    # function of the next iteration time limit estimation , it is not true! TODO
-    def f(self, l, last_iteration_time):
-        return 4*last_iteration_time
-
-    def make_move(self, time_limit):  # time parameter is not used, we assume we have enough time.
-        ID_start_time = time.time()
-        dd=1
-        l=0
-        i,j = self.position_of_1(self.board)
-        move = self.RBMinimax(self.board,(i,j),1,dd,dd,l)[1]
-        last_iteration_time = time.time() - ID_start_time
-        next_iteration_max_time = self.f(l,last_iteration_time)
-        time_until_now = time.time() - ID_start_time
-        while time_until_now + next_iteration_max_time < time_limit:
-            dd += 1
-            l = 0
-            iteration_start_time = time.time()
-            move = self.RBMinimax(self.board, (i, j), 1, dd,dd, l)[1]
-            last_iteration_time = time.time() - iteration_start_time
-            next_iteration_max_time = self.f(l, last_iteration_time)
-            time_until_now = time.time() - ID_start_time
-        return move
+    def make_move(self, t):
+        self.time, self.start = t, time.time()
+        depth = 1
+        best_move, best_score = None, float('-inf')
+        while self.time_left() > self.buffer:  # At least #buffer ms left to run
+            # print(self.time_left())
+            # print(depth)
+            best_move, best_score, leaves = self.RBMinimax(depth, 1)
+            depth += 1
+        d = (best_move[0] - self.loc[0], best_move[1] - self.loc[1])
+        # print(d)
+        self.loc = best_move
+        return d
 
     def set_rival_move(self, loc):
         self.board[loc] = 2
+        self.board[self.rival] = -1
+        self.rival = loc
 
-    # RB-MiniMax as the presentation
-    # self is only for the directions, board is actually the state - i hard copied it every new node
-    # agent_loc is the location of the agent (which tell if its player 1 or 2)
-    # dd is the depth is allowed, l number of leaves
-    def RBMinimax(self, board, agent_loc, agent, cd, dd ,l):
-        if self.is_final_state(board):
-            l = l+1
-            return self.h_num_of_moves( board, agent_loc), agent_loc
-        if  cd==0:
-            return self.h_num_of_moves( board, agent_loc), agent_loc
+    def RBMinimax(self, depth, agent):
+        # If we're out of time or the state is final, finish up
+        if self.time_left() <= self.buffer or self.is_final(depth, agent):
+            return self.loc, self.score(), 1
+
+        best_move, leaves = None, 0
+
+        # It's our turn - max node
         if agent == 1:
             curr_max = float('-inf')
-            last_loc = agent_loc
-            for d in self.directions:
-                i = agent_loc[0] + d[0]
-                j = agent_loc[1] + d[1]
-                if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j] == 0:  # then move is legal
-                    new_board = board
-                    board[agent_loc[0], agent_loc[1]] = -1
-                    board[i,j] = agent
-                    agent_loc= (i,j)
-                    v = self.RBMinimax(new_board, agent_loc, 3-agent, cd-1,dd, l)
-                    if v[0] > curr_max:
-                        curr_max = v[0]
-                        last_loc = (i,j)
-            if dd == cd:
-                return curr_max, last_loc
-            else:
-                return curr_max, None
+            last_loc = self.loc
+            moves = self.get_moves(last_loc)
+            self.board[last_loc] = -1
+
+            for d in moves:
+                self.loc = d
+                self.board[d] = 1
+                loc, score, leaf = self.RBMinimax(depth - 1, 2)
+                if score >= curr_max:
+                    curr_max = score
+                    best_move = d
+                leaves += leaf
+                self.board[d] = 0
+
+            self.loc = last_loc
+            self.board[last_loc] = 1
+            return best_move, curr_max, leaves
+
+        # Opponent's turn - min node
         else:
             curr_min = float('inf')
-            last_loc = agent_loc
-            for d in self.directions:
-                i = agent_loc[0] + d[0]
-                j = agent_loc[1] + d[1]
-                if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j] == 0:  # then move is legal
-                    new_board = board
-                    board[agent_loc[0], agent_loc[1]] = -1
-                    board[i, j] = agent
-                    agent_loc = (i, j)
-                    v = self.RBMinimax(new_board, agent_loc, 3 - agent, cd - 1,dd, l)
-                    if v[0] < curr_min:
-                        curr_min = v[0]
-                        last_loc = (i,j)
-            if dd==cd:
-                return curr_min, last_loc
-            else:
-                return curr_min, None
+            last_loc = self.rival
+            moves = self.get_moves(last_loc)
+            self.board[last_loc] = -1
+
+            for d in moves:
+                #   Edit state
+                self.rival = d
+                self.board[d] = 2
+                loc, score, leaf = self.RBMinimax(depth - 1, 1)
+                if score <= curr_min:
+                    curr_min = score
+                    best_move = d
+                leaves += leaf
+                #   Revert map value
+                self.board[d] = 0
+
+            #   Revert to current state
+            self.rival = last_loc
+            self.board[last_loc] = 2
+            return best_move, curr_min, leaves
+
+    # Shitty heuristic stuff
+    def future_moves(self, loc, depth):
+        l, r = loc[1] - depth, loc[1] + depth
+        u, d = loc[0] - depth, loc[0] + depth
+        moves = self.get_moves(loc)
+        visited = []
+        count = 0
+        while moves:
+            m = moves.pop(0)
+            if l <= m[1] <= r and u <= m[0] <= d and m not in visited:
+                count += 1
+                visited.append(m)
+                moves += self.get_moves(m)
+        return count
+
