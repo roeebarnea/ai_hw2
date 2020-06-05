@@ -129,6 +129,7 @@ def get_player(player_type, module):
         exit(-1)
     return player
 
+
 def create_flags():
     d = {'time_to_make_a_move': 2, 'map': 0, 'time_to_set_game_param': 2}
     flags_input = sys.argv[3:]

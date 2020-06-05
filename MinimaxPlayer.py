@@ -48,14 +48,16 @@ class MinimaxPlayer:
             return True
         return False
 
-    def score(self):
+    def score(self, turn):
         moves = len(self.get_moves(self.loc))
         rival_moves = len(self.get_moves(self.rival))
         win, lose = float('inf'), float('-inf')
 
-        if not rival_moves and moves:       # Rival is out of moves but we're not
+        if not rival_moves and not moves:
+            return -100
+        elif not rival_moves and turn == 2:       # Rival is out of moves but we're not
             return win
-        elif not moves and rival_moves:     # We're out of moves but rival isn't
+        elif not moves and turn == 1:             # We're out of moves but rival isn't
             return lose
 
         # TODO: Figure out better heuristics, mine are shit :(
@@ -74,9 +76,16 @@ class MinimaxPlayer:
             # print(self.time_left())
             # print(depth)
             best_move, best_score, leaves = self.RBMinimax(depth, 1)
+            # print(depth)
+            # print(best_move, best_score)
             depth += 1
+            if best_score == float('inf'):
+                break
         d = (best_move[0] - self.loc[0], best_move[1] - self.loc[1])
+        # print("search result: ")
         # print(d)
+
+        self.board[self.loc], self.board[best_move] = -1, 1
         self.loc = best_move
         return d
 
@@ -88,7 +97,7 @@ class MinimaxPlayer:
     def RBMinimax(self, depth, agent):
         # If we're out of time or the state is final, finish up
         if self.time_left() <= self.buffer or self.is_final(depth, agent):
-            return self.loc, self.score(), 1
+            return self.loc, self.score(agent), 1
 
         best_move, leaves = None, 0
 
@@ -106,8 +115,11 @@ class MinimaxPlayer:
                 if score >= curr_max:
                     curr_max = score
                     best_move = d
+
                 leaves += leaf
                 self.board[d] = 0
+                if curr_max == float('inf'):
+                    break
 
             self.loc = last_loc
             self.board[last_loc] = 1
@@ -131,6 +143,8 @@ class MinimaxPlayer:
                 leaves += leaf
                 #   Revert map value
                 self.board[d] = 0
+                if curr_min == float('-inf'):
+                    break
 
             #   Revert to current state
             self.rival = last_loc
@@ -156,6 +170,6 @@ class MinimaxPlayer:
         size = self.board.shape
         moves = len(self.get_moves(self.loc))
         rival = len(self.get_moves(self.rival))
-        return moves - rival - heuristics.dist(self.loc, self.rival) - heuristics.center_dist(self.loc, size)
+        return moves - rival - heuristics.distance(self.loc, self.rival) - heuristics.center_dist(self.loc, size)
 
 

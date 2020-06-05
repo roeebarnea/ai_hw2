@@ -65,19 +65,23 @@ def h3(player):
                 count2 += 1
     return count1 - count2
 
+
 def h_next_move_options(player):
     loc1 = player.loc
     loc2 = player.rival
     return len(player.get_moves(loc1)) - len(player.get_moves(loc2))
+
 
 def h_manhattan_distance(player):
     loc1 = player.loc
     loc2 = player.rival
     return numpy.abs(loc1[0] - loc2[0]) + numpy.abs(loc1[1] - loc2[1])
 
+
 def h4(player, moves, rival):
     return player.future_moves(player.loc, min(player.board.shape)) + (moves - rival) / 3.0 + \
            distance(player.loc, player.rival) / player.board.size
+
 
 def max_free_direction(player):
     loc1 = player.loc
@@ -95,7 +99,9 @@ def max_free_direction(player):
             max = count
     return max
 
+
 def h_future_moves(player, loc, depth):
+    depth = min(depth, min(player.board.shape))
     l, r = loc[1] - depth, loc[1] + depth
     u, d = loc[0] - depth, loc[0] + depth
     moves = player.get_moves(loc)
@@ -107,11 +113,12 @@ def h_future_moves(player, loc, depth):
             count += 1
             visited.append(m)
             moves += player.get_moves(m)
-    return count
+    return count / depth
+
 
 def h_minimax(player):
-    min_len = min(player.board.shape[0], player.board.shape[1])
-    v1 =  h_future_moves(player, player.loc, min_len/4)/min_len
-    v2 =  h_manhattan_distance(player)/player.board.size
+    min_len = min(player.board.shape)
+    v1 = h_future_moves(player, player.loc, min_len/4)
+    v2 = h_manhattan_distance(player)/player.board.size
     v3 = h_next_move_options(player)/3
     return v1 + v2 + v3

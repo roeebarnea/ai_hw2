@@ -48,14 +48,16 @@ class AlphaBetaPlayer:
             return True
         return False
 
-    def score(self):
+    def score(self, turn):
         moves = len(self.get_moves(self.loc))
         rival_moves = len(self.get_moves(self.rival))
         win, lose = float('inf'), float('-inf')
 
-        if not rival_moves and moves:       # Rival is out of moves but we're not
+        if not rival_moves and not moves:
+            return -100                      # Tie penalty
+        elif not rival_moves and turn == 2:  # Rival is out of moves but we're not
             return win
-        elif not moves and rival_moves:     # We're out of moves but rival isn't
+        elif not moves and turn == 1:  # We're out of moves but rival isn't
             return lose
 
         # TODO: Figure out better heuristics, mine are shit :(
@@ -75,6 +77,8 @@ class AlphaBetaPlayer:
             depth += 1
         d = (best_move[0] - self.loc[0], best_move[1] - self.loc[1])
         # print(d)
+
+        self.board[self.loc], self.board[best_move] = -1, 1
         self.loc = best_move
         return d
 
@@ -86,7 +90,7 @@ class AlphaBetaPlayer:
     def RBMinimax(self, depth, agent, alpha, beta):
         # If we're out of time or the state is final, finish up
         if self.time_left() <= self.buffer or self.is_final(depth, agent):
-            return self.loc, self.score(), 1
+            return self.loc, self.score(agent), 1
 
         best_move, leaves = None, 0
 
