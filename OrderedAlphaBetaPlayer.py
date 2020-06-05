@@ -10,7 +10,7 @@ class OrderedAlphaBetaPlayer:
         self.board = None
         self.directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 
-        self.buffer = 10 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
+        self.buffer = 150 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
         self.time, self.start = 0, 0  # total time given for a run and start time, initialized in each call
 
         # Minimax values of first level of sons for this run

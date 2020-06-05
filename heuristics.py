@@ -29,10 +29,10 @@ def h2(player):
 def get_neighbours(board, loc):
     neighbours = set()
     x, y = loc[0], loc[1]
-    if x+1 <= board.size[0]-1:
+    if x+1 <= board.shape[0]-1:
         if board[x+1,y] == 0:
             neighbours.add((x+1,y))
-    if y+1 <= board.size[1]-1:
+    if y+1 <= board.shape[1]-1:
         if board[x,y+1] == 0:
             neighbours.add((x,y+1))
     if x-1 >= 0:
@@ -45,8 +45,8 @@ def get_neighbours(board, loc):
 
 
 def dijkistra_matrix(board, loc):
-    visited = numpy.zeros(board.size)
-    dist = numpy.zeros(board.size)
+    visited = numpy.zeros(board.shape)
+    dist = numpy.zeros(board.shape)
     dist[:] = numpy.inf
     x, y = loc[0], loc[1]
     dist[x,y] = 0
@@ -79,8 +79,8 @@ def h3(player):
     dist2 = dijkistra_matrix(board, loc2)
     count1 = 0
     count2 = 0
-    for row in range(0, board.size[0]):
-        for col in range(0, board.size[1]):
+    for row in range(0, board.shape[0]):
+        for col in range(0, board.shape[1]):
             if dist1[row, col] == numpy.inf and dist2[row, col] == numpy.inf :
                 continue
             if dist1[row, col] == numpy.inf:
@@ -97,17 +97,4 @@ def h3(player):
                 continue
     return count1 - count2
 
-def print_board_to_terminal(board):
-    # print(board_to_print)
-    print('_' * board.size[0] * 4)
-    for row in range(0, board.size[0]):
-        for col in range(0, board.size[1]):
-            print(board[row,col],end= "  ", flush=True)
-        print()
 
-
-if __name__ == '__main__':
-    board = Board((4,4), [],[(0,0),(3,3)])
-    print_board_to_terminal(board)
-    dist = dijkistra_matrix(board,(0,0))
-    print(dist)
