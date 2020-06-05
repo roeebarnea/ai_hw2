@@ -167,8 +167,10 @@ def create_flags():
         flags_input = flags_input[2:]
     return d
 
+
 if __name__ == '__main__':
-    # print('runing')
+
+        # print('runing')
     args = sys.argv.copy()
 
     player_1_type = args[1]
