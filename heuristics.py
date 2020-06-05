@@ -114,4 +114,4 @@ def h_minimax(player):
     v1 =  h_future_moves(player, player.loc, min_len/4)/min_len
     v2 =  h_manhattan_distance(player)/player.board.size
     v3 = h_next_move_options(player)/3
-    return v1+v2+v3
+    return v1 + v2 + v3
