@@ -88,6 +88,7 @@ class MinimaxPlayer:
         self.board[self.loc], self.board[best_move] = -1, 1
         self.loc = best_move
         return d
+        # return depth -- for ex.17
 
     def set_rival_move(self, loc):
         self.board[loc] = 2

@@ -10,7 +10,7 @@ class OrderedAlphaBetaPlayer:
         self.board = None
         self.directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 
-        self.buffer = 150 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
+        self.buffer = 10 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
         self.time, self.start = 0, 0  # total time given for a run and start time, initialized in each call
 
         # Minimax values of first level of sons for this run
@@ -83,11 +83,12 @@ class OrderedAlphaBetaPlayer:
             if best_score == float('inf'):
                 break
         d = (best_move[0] - self.loc[0], best_move[1] - self.loc[1])
-        print(d, depth-1, best_score)
+        #print(d, depth-1, best_score)
 
         self.board[self.loc], self.board[best_move] = -1, 1
         self.loc = best_move
         return d
+        # return depth # ex.17
 
     def set_rival_move(self, loc):
         self.board[loc] = 2

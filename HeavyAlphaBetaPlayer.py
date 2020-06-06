@@ -3,14 +3,14 @@ import heuristics
 from random import shuffle
 
 
-class AlphaBetaPlayer:
+class HeavyAlphaBetaPlayer:
     def __init__(self):
         self.loc = None
         self.rival = None
         self.board = None
         self.directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 
-        self.buffer = 10 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
+        self.buffer = 100 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
         self.time, self.start = 0, 0  # total time given for a run and start time, initialized in each call
 
     def set_game_params(self, board):
@@ -61,7 +61,7 @@ class AlphaBetaPlayer:
             return lose
 
         # TODO: Figure out better heuristics, mine are shit :(
-        return heuristics.h_minimax(self)
+        return heuristics.h3(self)
 
     def time_left(self):
         #   Compute time left for the run in milliseconds
