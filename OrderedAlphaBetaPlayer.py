@@ -83,7 +83,6 @@ class OrderedAlphaBetaPlayer:
             if best_score == float('inf'):
                 break
         d = (best_move[0] - self.loc[0], best_move[1] - self.loc[1])
-        #print(d, depth-1, best_score)
 
         self.board[self.loc], self.board[best_move] = -1, 1
         self.loc = best_move
@@ -100,9 +99,8 @@ class OrderedAlphaBetaPlayer:
         if not self.sons:
             self.sons = {move: 0 for move in self.get_moves(self.loc)}
             return self.sons.keys()
-        # print("sons")
         # Otherwise, sons is already initialized with a previous iteration's values - return the possible moves sorted
-        return sorted(self.sons, key=lambda x: x[1], reverse=False)
+        return sorted(self.sons, key=self.sons.get, reverse=True)
 
 
     def RBMinimax(self, depth, agent, alpha, beta, sons=False):

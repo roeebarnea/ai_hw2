@@ -10,7 +10,7 @@ class AlphaBetaPlayer:
         self.board = None
         self.directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 
-        self.buffer = 10 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
+        self.buffer = 100 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
         self.time, self.start = 0, 0  # total time given for a run and start time, initialized in each call
 
     def set_game_params(self, board):
@@ -29,7 +29,7 @@ class AlphaBetaPlayer:
     def get_moves(self, loc):
         i, j = loc
         moves = [(i + x, j + y) for x, y in self.directions if self.is_legal((i + x, j + y))]
-        # shuffle(moves)
+        shuffle(moves)
         return moves
 
     def is_legal(self, loc):
@@ -75,11 +75,16 @@ class AlphaBetaPlayer:
         while self.time_left() > self.buffer and depth <= limit:  # At least #buffer ms left to run
             best_move, best_score, leaves = self.RBMinimax(depth, 1, float('-inf'), float('inf'))
             depth += 1
+
+            if best_score == float('inf'):
+                break
         d = (best_move[0] - self.loc[0], best_move[1] - self.loc[1])
         # print(d)
 
         self.board[self.loc], self.board[best_move] = -1, 1
         self.loc = best_move
+        # print("AB search result: ")
+        # print(d, depth, best_score)
         return d
         #return depth --for ex. 17
 

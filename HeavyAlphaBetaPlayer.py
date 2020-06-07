@@ -61,7 +61,7 @@ class HeavyAlphaBetaPlayer:
             return lose
 
         # TODO: Figure out better heuristics, mine are shit :(
-        return heuristics.h3(self)
+        return heuristics.h5(self)
 
     def time_left(self):
         #   Compute time left for the run in milliseconds
@@ -80,6 +80,7 @@ class HeavyAlphaBetaPlayer:
 
         self.board[self.loc], self.board[best_move] = -1, 1
         self.loc = best_move
+        # print("Heavy reached depth {}".format(depth-1))
         return d
         #return depth #--for ex. 17
 

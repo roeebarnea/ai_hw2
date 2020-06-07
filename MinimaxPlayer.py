@@ -29,7 +29,7 @@ class MinimaxPlayer:
     def get_moves(self, loc):
         i, j = loc
         moves = [(i + x, j + y) for x, y in self.directions if self.is_legal((i + x, j + y))]
-        # shuffle(moves)
+        shuffle(moves)
         return moves
 
     def is_legal(self, loc):
@@ -82,8 +82,8 @@ class MinimaxPlayer:
             if best_score == float('inf'):
                 break
         d = (best_move[0] - self.loc[0], best_move[1] - self.loc[1])
-        # print("search result: ")
-        # print(d)
+        # print("Minimax search result: ")
+        # print(d, depth, best_score)
 
         self.board[self.loc], self.board[best_move] = -1, 1
         self.loc = best_move
