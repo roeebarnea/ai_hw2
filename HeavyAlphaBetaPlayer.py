@@ -27,7 +27,7 @@ class HeavyAlphaBetaPlayer:
                     break
 
     def get_moves(self, loc):
-        i, j = loc
+        i, j = loc[0], loc[1]
         moves = [(i + x, j + y) for x, y in self.directions if self.is_legal((i + x, j + y))]
         # shuffle(moves)
         return moves
