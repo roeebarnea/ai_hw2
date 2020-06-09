@@ -41,6 +41,33 @@ def dijkistra_matrix(player, board, loc):
     return dist
 
 
+def dijkistra_max(player, board, loc):
+    visited = numpy.zeros(board.shape)
+    dist = numpy.zeros(board.shape)
+    dist[:] = numpy.inf
+    dist[loc] = 0
+
+    max =0
+    first_neighbours = get_moves(board, loc)
+    for n in first_neighbours:
+        dist[n] = 1
+
+    que = deque(first_neighbours)
+
+    while len(que) != 0:
+        min_loc = que.popleft()
+        for n in get_moves(board, min_loc):
+            if dist[n] > dist[min_loc] + 1:
+                dist[n] = dist[min_loc] + 1
+                if dist[n] > max:
+                    max = dist[n]
+            if visited[n] == 0:
+                que.append(n)
+                visited[n] = 1
+
+    return max
+
+
 def h3(player):
     dist1 = dijkistra_matrix(player, player.board, player.loc)
     dist2 = dijkistra_matrix(player, player.board, player.rival)

@@ -49,6 +49,8 @@ def get_player(player_type, module):
         player = module.LiteAlphaBetaPlayer()
     elif player_type == 'ContestPlayer':
         player = module.ContestPlayer()
+    elif player_type == 'DijkistraAlphaBetaPlayer':
+        player = module.DijkistraAlphaBetaPlayer()
     else:
         print('bad input')
         exit(-1)
@@ -227,19 +229,15 @@ def test_border(player_1_type, player_2_type, m, n, p, num_of_plays, time_for_mo
     print()
     print('number of ties:', ties, 'precentage:', ties/total)
     print('number of player 1 wins:', players1, 'precentage:', players1 / total)
-    print('number of player 2 wins:', players1, 'precentage:', players2 / total)
+    print('number of player 2 wins:', players2, 'precentage:', players2 / total)
     print('***--------------------------------***')
     print()
 
 
 
 if __name__ == '__main__':
-    test_border('ContestPlayer', 'HeavyAlphaBetaPlayer', 12 ,12, 0.2, 10, 2, 10)
-    test_border('ContestPlayer', 'LiteAlphaBetaPlayer', 12, 12, 0.2, 10, 2, 10)
-    test_border('ContestPlayer', 'SimplePlayer', 12, 12, 0.2, 10, 2, 10)
-    test_border('ContestPlayer', 'MinimaxPlayer', 12, 12, 0.2, 10, 2, 10)
-    test_border('HeavyAlphaBetaPlayer', 'LiteAlphaBetaPlayer', 12, 12, 0.2, 10, 2, 10)
-    test_border('LiteAlphaBetaPlayer', 'SimplePlayer', 12, 12, 0.2, 10, 2, 10)
-    test_border('LiteAlphaBetaPlayer', 'MinimaxPlayer', 12, 12, 0.2, 10, 2, 10)
-    test_border('MinimaxPlayer', 'SimplePlayer', 12, 12, 0.2, 10, 2, 10)
+    test_border('ContestPlayer', 'DijkistraAlphaBetaPlayer', 12 ,12, 0.2, 10, 2, 5)
+    test_border('LiteAlphaBetaPlayer', 'DijkistraAlphaBetaPlayer', 12 ,12, 0.2, 10, 2, 5)
+    test_border('MinimaxPlayer', 'DijkistraAlphaBetaPlayer', 12 ,12, 0.2, 10, 2, 5)
+
 
