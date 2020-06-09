@@ -40,7 +40,7 @@ class NotAnimatedGameTest:
 
     def run_game(self):
         while True:
-            if self.t == 0 and self.print_game_in_terminal:
+            if self.t == 0 :
                 print('\nInitial board:')
                 board = self.game.board.get_map_for_player_i(1)
                 self.print_board_to_terminal(board)
@@ -49,22 +49,22 @@ class NotAnimatedGameTest:
             if self.player_cant_move(player_index):
                 if self.player_cant_move(1 - player_index):
                     self.score =0 #DELETE
-                    print('####################')
-                    print('####################')
+                    # print('####################')
+                    # print('####################')
                     print("     It's a Tie!")
-                    print('####################')
-                    print('####################')
+                    # print('####################')
+                    # print('####################')
                     sys.stdout = open(os.devnull, 'w')
                     return 0
                 else:
-                    self.score = 1 - player_index  # DELETE
-                    print('####################')
-                    print('####################')
+                    self.score = 1 - player_index + 1  # DELETE
+                    # print('####################')
+                    # print('####################')
                     print("    Player", (1 - player_index) + 1, "Won!")
-                    print('####################')
-                    print('####################')
+                    # print('####################')
+                    # print('####################')
                     sys.stdout = open(os.devnull, 'w')
-                    return 1 - player_index
+                    return 1 - player_index + 1
 
             if isinstance(self.players[player_index], LivePlayer):
                 print('Player', player_index + 1, 'insert your move.')
@@ -77,14 +77,14 @@ class NotAnimatedGameTest:
                 end = time.time()
                 diff = end - start
                 if diff > self.time_to_make_a_move:
-                    self.score = 1 - player_index  # DELETE
-                    print()
-                    print('####################')
-                    print('####################')
+                    self.score = 1 - player_index + 1 # DELETE
+                    # print()
+                    # print('####################')
+                    # print('####################')
                     print(" Time Up For Player", player_index + 1)
                     print("    Player", 1 - player_index + 1, "Won!")
-                    print('####################')
-                    print('####################')
+                    # print('####################')
+                    # print('####################')
                     return 1 - player_index
             prev_loc = self.game.board.get_player_location(player_index + 1)
             # print('player is at loc', prev_loc)
@@ -101,7 +101,7 @@ class NotAnimatedGameTest:
                 self.players[1 - player_index].set_rival_move(loc)
                 self.game.switch_players()
             else:
-                # print('Agent', player_index + 1, 'moved to', loc)
+                #print('Agent', player_index + 1, 'moved to', loc)
                 assert self.game.check_move(loc), 'illegal move'
                 self.players[1 - player_index].set_rival_move(loc)
 
