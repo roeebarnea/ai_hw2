@@ -18,6 +18,7 @@ def h2(player):
 
 
 def dijkistra_matrix(player, board, loc):
+    # start = time.time()
     visited = numpy.zeros(board.shape)
     dist = numpy.zeros(board.shape)
     dist[:] = numpy.inf
@@ -38,10 +39,13 @@ def dijkistra_matrix(player, board, loc):
                 que.append(n)
                 visited[n] = 1
 
+    # elapsed = 1000*(time.time() - start)
+    # update_time(elapsed, "Dijkstra Matrix")
     return dist
 
 
 def dijkistra_max(player, board, loc):
+    start = time.time()
     visited = numpy.zeros(board.shape)
     dist = numpy.zeros(board.shape)
     dist[:] = numpy.inf
@@ -65,10 +69,13 @@ def dijkistra_max(player, board, loc):
                 que.append(n)
                 visited[n] = 1
 
+    elapsed = 1000 * (time.time() - start)
+    update_time(elapsed, "Dijkstra Max")
     return max
 
 
 def h3(player):
+    start = time.time()
     dist1 = dijkistra_matrix(player, player.board, player.loc)
     dist2 = dijkistra_matrix(player, player.board, player.rival)
     count1, count2 = 0, 0
@@ -78,8 +85,8 @@ def h3(player):
                 count1 += 1
             if dist2[row, col] < dist1[row, col] and dist2[row, col] != numpy.inf:
                 count2 += 1
-    # print("voronoi val for locs {} and {}:)".format(player.loc, player.rival))
-    # print("{} - {} = {}".format(count1, count2, count1 - count2))
+    elapsed = 1000*(time.time() - start)
+    update_time(elapsed, "Double dijkstra")
     return count1 - count2
 
 
@@ -148,7 +155,7 @@ def h_future_moves(player, loc, depth):
             visited.append(m)
             moves += player.get_moves(m)
 
-    update_time(time.time() - start)
+    update_time(1000*(time.time() - start), "Future moves")
     return count / depth
 
 
@@ -178,10 +185,9 @@ def dfs(player, loc):
 def h_minimax(player):
     min_len = min(player.board.shape)
     v1 = h_future_moves(player, player.loc, min_len/4)
-    # v1 = dfs(player) / player.board.size
     v2 = h_manhattan_distance(player)/player.board.size
     v3 = h_next_move_options(player)/3
-    return v1 + v2 + v3
+    return v1 - v2 + v3
 
 
 def h_articulations(player):
@@ -196,7 +202,6 @@ def h_articulations(player):
                 count1 += 1
             if r_dists[row, col] < p_dists[row, col] and r_dists[row, col] != numpy.inf:
                 count2 += 1
-    # print("voronoi with articulations: {} - {} = {}".format(count1, count2, count1 - count2))
     return count1 - count2
 
 #
@@ -206,6 +211,7 @@ def h_articulations(player):
 #
 
 def h_components(player):
+    start = time.time()
     p_dist = dijkistra_matrix(player, player.board, player.loc)
     r_dist = dijkistra_matrix(player, player.board, player.rival)
 
@@ -219,7 +225,9 @@ def h_components(player):
     c2, e2, _ = evaluate_components(r_dist, p_dist, player.board, arts2, visited, player.rival, player.time_up)
 
     player.board[player.loc], player.board[player.rival] = 1, 2
-    return (c1 - c2) + 5*(e1 - e2)
+    elapsed = 1000 * (time.time() - start)
+    update_time(elapsed, "Components")
+    return (c1 - c2) + 3*(e1 - e2)
 
 
 def evaluate_components(dists1, dists2, board, arts, visited, loc, timer):
@@ -227,7 +235,7 @@ def evaluate_components(dists1, dists2, board, arts, visited, loc, timer):
         return -100, -100, False
 
     #   Explore the component that contains loc and is blocked by walls and articulation points
-    cells, edges, pts, border = explore_component(dists1, dists2, board, arts, loc, visited)
+    cells, edges, pts, border = explore_component(dists1, dists2, board, arts, loc, visited, timer)
 
     best = [0, (cells, edges)]
 
@@ -245,29 +253,61 @@ def evaluate_components(dists1, dists2, board, arts, visited, loc, timer):
     return best[1][0], best[1][1], border
 
 
-def explore_component(dists1, dists2, board, arts, loc, visited, border=False):
-    if visited[loc]:
-        return 0, 0, [], border
-    cells, edges = 1, 0
+# def explore_component(dists1, dists2, board, arts, loc, visited, border=False):
+#     if visited[loc]:
+#         return 0, 0, [], border
+#     cells, edges = 1, 0
+#     cut_points = []
+#     visited[loc] = 1
+#
+#     for n in get_moves(board, loc):
+#         edges += 1
+#         if not visited[n]:
+#             if dists1[n] >= dists2[n]:
+#                 border = True
+#                 continue
+#
+#             if arts[n] == 3 or arts[loc] == 3:
+#                 cut_points.append(n)
+#                 continue
+#
+#             c, e, pts, border = explore_component(dists1, dists2, board, arts, n, visited, border)
+#             cells += c
+#             edges += e
+#             cut_points += pts
+#     return cells, edges, cut_points, border
+
+def explore_component(dists1, dists2, board, arts, loc, visited, timer, border=False):
+    cell_stack = deque([loc])
     cut_points = []
-    visited[loc] = 1
 
-    for n in get_moves(board, loc):
-        edges += 1
-        if not visited[n]:
-            if dists1[n] >= dists2[n]:
-                border = True
-                continue
+    cells, edges = 0, 0
+    while cell_stack and not timer():
+        # print(cell_stack)
+        cell = cell_stack.pop()
+        if visited[cell]:
+            continue
+        visited[cell] = 1
+        cells += 1
+        for n in get_moves(board, cell):
+            if not visited[n]:
+                edges += 1
+                if dists1[n] >= dists2[n]:
+                    border = True
+                    continue
 
-            if arts[n] == 3 or arts[loc] == 3:
-                cut_points.append(n)
-                continue
+                if arts[n] == 3 or arts[cell] == 3:
+                    cut_points.append(n)
+                    continue
 
-            c, e, pts, border = explore_component(dists1, dists2, board, arts, n, visited, border)
-            cells += c
-            edges += e
-            cut_points += pts
+                # TODO: Check if this makes timeouts go away, maybe try play with the number (40)
+                if distance(loc, n) >= 40:
+                    continue
+
+                cell_stack.append(n)
+
     return cells, edges, cut_points, border
+
 
 """
     Find articulation points in map
@@ -287,6 +327,7 @@ def find_articulations(player, rival=False):
     # print(board)
     # print()
     art_util(board, visited, low, num, parent, 1, loc)
+
     # print(board)
     # exit()
 
@@ -294,6 +335,8 @@ def find_articulations(player, rival=False):
 
 
 def art_util(board, visited, low, num, parent, count, loc):
+    if count == 800:    # Preventing recursion crash
+        return
     visited[loc] = 1
     low[loc], num[loc], count = count, count, count + 1
     fwd_edges = 0
@@ -316,15 +359,24 @@ def art_util(board, visited, low, num, parent, count, loc):
     Timing utility functions
 """
 max_time = 0
-
+max_func = ""
 
 def get_time():
-    print(max_time)
-
-
-def update_time(t):
     global max_time
-    max_time = max(max_time, t*1000)
+    global max_func
+    t = max_time
+    # print("Longest function is {} with {} ms".format(max_func, max_time))
+    max_time = 0
+    return t
+
+
+def update_time(t, func):
+    global max_time
+    global max_func
+    if t > max_time:
+        max_time = t
+        max_func = func
+
 
 
 """
@@ -361,6 +413,7 @@ def center_dist(loc, size):
 
 
 def find_rival(player):
+    start = time.time()
     player.board[player.rival] = 0
     visited = numpy.zeros(player.board.shape)
     q = deque([player.loc])
@@ -374,5 +427,8 @@ def find_rival(player):
                 q.append(move)
 
     player.board[player.rival] = 2
+
+    elapsed = 1000*(time.time() - start)
+    update_time(elapsed, "Find rival")
     return visited[player.rival]
 

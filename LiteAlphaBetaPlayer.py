@@ -60,7 +60,9 @@ class LiteAlphaBetaPlayer:
         elif not moves and turn == 1:  # We're out of moves but rival isn't
             return lose
 
-        # TODO: Figure out better heuristics, mine are shit :(
+        if self.time_left() <= self.buffer:
+            # print(self.time_left())
+            return lose if turn == 2 else win
         return heuristics.h_next_move_options(self)
 
     def time_left(self):

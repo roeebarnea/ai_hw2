@@ -60,8 +60,7 @@ class HeavyAlphaBetaPlayer:
         elif not moves and turn == 1:  # We're out of moves but rival isn't
             return lose
 
-        # TODO: Figure out better heuristics, mine are shit :(
-        return heuristics.h5(self)
+        return heuristics.h3(self)
 
     def time_left(self):
         #   Compute time left for the run in milliseconds

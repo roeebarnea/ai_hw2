@@ -10,7 +10,7 @@ import sys, os
 
 class NotAnimatedGameTest:
     def __init__(self, size, block_locations, starts, player_1, player_2, moves='regular', time_to_make_a_move=2,
-                 print_game_in_terminal=True):
+                 print_game_in_terminal=False):
         assert hasattr(player_1, 'set_game_params')
         assert hasattr(player_2, 'set_game_params')
         assert hasattr(player_1, 'make_move')
@@ -43,7 +43,7 @@ class NotAnimatedGameTest:
             if self.t == 0 :
                 print('\nInitial board:')
                 board = self.game.board.get_map_for_player_i(1)
-                self.print_board_to_terminal(board)
+                # self.print_board_to_terminal(board)
             player_index = self.t % 2
             # print('TURN', t, 'player', player_index + 1)
             if self.player_cant_move(player_index):
@@ -145,7 +145,7 @@ def get_player(player_type, module):
 
 def create_flags():
     # 'time_to_make_a_move': 2
-    d = {'time_to_make_a_move': 2, 'map': 0, 'time_to_set_game_param': 2, 'print_in_terminal': True}
+    d = {'time_to_make_a_move': 2, 'map': 0, 'time_to_set_game_param': 2, 'print_in_terminal': False}
     flags_input = sys.argv[3:]
     # assert len(flags_input) % 2 == 0, 'bad flags'
     while len(flags_input) > 0:
@@ -172,28 +172,31 @@ def create_flags():
     return d
 
 
-# if __name__ == '__main__':
-#
-#     #print('runing')
-#     args = sys.argv.copy()
-#
-#     player_1_type = args[1]
-#     player_2_type = args[2]
-#     module_1 = __import__(player_1_type)
-#     module_2 = __import__(player_2_type)
-#     player_1 = get_player(player_1_type, module_1)
-#     player_2 = get_player(player_2_type, module_2)
-#
-#     d = create_flags()
-#     map_index = d['map']
-#     map = maps[map_index]
-#     time_to_make_a_move = d['time_to_make_a_move']
-#     print_in_terminal = d['print_in_terminal']
-#
-#     print('Starting Game')
-#     print(player_1_type, 'VS', player_2_type)
-#     print('Board', map_index)
-#     print('Players (besides LivePlayer) have', time_to_make_a_move, 'seconds to make a move')
-#     NotAnimatedGameTest(map[0], map[1], map[2], player_1=player_1, player_2=player_2,
-#                     time_to_make_a_move=time_to_make_a_move, print_game_in_terminal=print_in_terminal)
+if __name__ == '__main__':
+
+    #print('runing')
+    args = sys.argv.copy()
+
+    player_1_type = args[1]
+    player_2_type = args[2]
+    module_1 = __import__(player_1_type)
+    module_2 = __import__(player_2_type)
+    player_1 = get_player(player_1_type, module_1)
+    player_2 = get_player(player_2_type, module_2)
+
+    d = create_flags()
+    map_index = d['map']
+    map = maps[map_index]
+    time_to_make_a_move = d['time_to_make_a_move']
+    print_in_terminal = d['print_in_terminal']
+
+    print("???")
+    print(maps[4])
+
+    print('Starting Game')
+    print(player_1_type, 'VS', player_2_type)
+    print('Board', map_index)
+    print('Players (besides LivePlayer) have', time_to_make_a_move, 'seconds to make a move')
+    NotAnimatedGameTest(map[0], map[1], map[2], player_1=player_1, player_2=player_2,
+                    time_to_make_a_move=time_to_make_a_move, print_game_in_terminal=print_in_terminal)
 #

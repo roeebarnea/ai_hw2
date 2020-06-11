@@ -160,4 +160,6 @@ size, blocks, _ = get_board_data(board)
 starts = [(4, 1), (4, 4)]
 small_map = [size, blocks, starts]
 
+
+
 maps = [small_map, diag_map, tunnels_map, trick_map, ai_map]

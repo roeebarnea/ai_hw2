@@ -10,8 +10,10 @@ class DijkistraAlphaBetaPlayer:
         self.board = None
         self.directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 
-        self.buffer = 100 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
+        self.buffer = 200 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
         self.time, self.start = 0, 0  # total time given for a run and start time, initialized in each call
+
+        self.endgame = False
 
     def set_game_params(self, board):
         self.board = board
@@ -60,7 +62,12 @@ class DijkistraAlphaBetaPlayer:
         elif not moves and turn == 1:  # We're out of moves but rival isn't
             return lose
 
-        return heuristics.dijkistra_max(self, self.board, self.loc)
+        if self.endgame:
+            return heuristics.dijkistra_max(self, self.board, self.loc)
+        if self.time_left() <= self.buffer:
+            # print(self.time_left())
+            return lose if turn == 2 else win
+        return heuristics.h3(self)
 
     def time_left(self):
         #   Compute time left for the run in milliseconds
@@ -68,6 +75,11 @@ class DijkistraAlphaBetaPlayer:
 
     def make_move(self, t):
         self.time, self.start = t, time.time()
+
+        if not self.endgame and not heuristics.find_rival(self):
+            print("In the endgame now")
+            self.endgame = True
+
         depth = 1
         best_move, best_score = None, float('-inf')
         limit = self.board.size
@@ -79,6 +91,8 @@ class DijkistraAlphaBetaPlayer:
 
         self.board[self.loc], self.board[best_move] = -1, 1
         self.loc = best_move
+        # heuristics.get_time()
+        # print("Dij: ", depth, " ", best_score)
         return d
         #return depth # --for ex. 17
 

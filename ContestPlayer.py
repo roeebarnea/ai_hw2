@@ -11,13 +11,11 @@ class ContestPlayer:
         self.directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
         self.endgame = False
 
-        self.buffer = 50 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
+        self.buffer = 200 # adjusts the time buffer - the algorithm folds up once there's less than buffer ms left
         self.time, self.start = 0, 0  # total time given for a run and start time, initialized in each call
 
         # Minimax values of first level of sons for this run
         self.sons = [dict(), dict()]
-
-        self.debug = False
 
     def set_game_params(self, board):
         self.board = board
@@ -70,10 +68,10 @@ class ContestPlayer:
         return False
 
     def set_move(self, loc, curr):
-        if not loc:
-            print("loc is messed up, time left: {}".format(self.time_left()))
-            self.debug = True
-            return self.set_move(self.get_moves(curr)[0], curr)
+        # if not loc:
+        #     print("loc is messed up, time left: {}".format(self.time_left()))
+        #     self.debug = True
+        #     return self.set_move(self.get_moves(curr)[0], curr)
         self.board[curr], self.board[loc] = -1, 1
         self.loc = loc
         return loc[0] - curr[0], loc[1] - curr[1]
@@ -87,7 +85,7 @@ class ContestPlayer:
         Utility for son organization
     """
     def get_sons(self, agent=1):
-        # Sons dict is cleared at the start of each make_move calll, so if it's empty we initialize it with the sons
+        # Sons dict is cleared at the start of each make_move call, so if it's empty we initialize it with the sons
         if not self.sons[0]:
             self.sons[0] = {move: 0 for move in self.get_moves(self.loc)}
             self.sons[1] = {move: 0 for move in self.get_moves(self.rival)}
@@ -111,7 +109,8 @@ class ContestPlayer:
         self.time, self.start = t, time.time()
 
         # self.endgame = True
-        if self.endgame or not heuristics.find_rival(self):
+        if not self.endgame and not heuristics.find_rival(self):
+            # print("In the endgame now")
             self.endgame = True
 
         best_move = self.minimax()
@@ -123,28 +122,25 @@ class ContestPlayer:
     def minimax(self):
         best_move, best_score = None, float('-inf')
         limit = self.board.size
-        depth = min(5, limit)
+        depth = 1
         self.sons[0].clear()
         self.sons[1].clear()
         self.get_sons(-1)
 
         while self.time_left() > self.buffer and depth <= limit:
-            move, score, leaves = self.RBMinimax(depth, 1, float('-inf'), float('inf'), True)
+            move, score, leaves = self.RBMinimax(depth, 1, float('-inf'), float('inf'), False)
             if score >= best_score:
                 best_move = move
                 best_score = score
             depth += 1
-            # print("Minimax best: {}, {} [ Depth: {} ]".format(best_move, best_score, depth-1))
             if best_score == float('inf'):
                 break
 
-        # print("Minimax final best: {}, {} [ Depth: {} ]".format(best_move, best_score, depth-1))
-        # print("Reached depth {} with score {}".format(depth-1, best_score))
         return best_move
 
     """
         Score functions: analyzes if we're at a final state or returns a heuristic value
-        If at endgame, uses endgame heuristic to maximize space utilizations
+        If at endgame, uses endgame heuristic to maximize space utilization
         Otherwise, uses a more sophisticated heuristic
         If time is up, prunes the branch
     """
@@ -161,7 +157,7 @@ class ContestPlayer:
             return lose
 
         if self.endgame:
-            return heuristics.dfs(self, self.loc) - moves
+            return heuristics.dijkistra_max(self, self.board, self.loc) - moves
         if self.time_left() <= self.buffer:
             # print("timeout penalty")
             return lose if turn == 2 else win
@@ -182,12 +178,6 @@ class ContestPlayer:
             curr_max = float('-inf')
             last_loc = self.loc
             moves = self.get_sons(1) if sons else self.get_moves(last_loc)
-            # if sons:
-            #     print("Depth 1 sons")
-            #     print("Depth: [ {} ]".format(depth))
-            #     print(self.sons)
-            #     print(moves)
-            #     print()
             self.board[last_loc] = -1
 
             for d in moves:
@@ -208,12 +198,6 @@ class ContestPlayer:
                     curr_max = float('inf')
                     break
 
-            if self.debug:
-                print("Agent {}".format(agent))
-                print("Just checked {} for depth {}".format(d, depth))
-                print("Best so far: {} with {}".format(best_move, curr_max))
-                print("Alpha[{}], Beta[{}]".format(alpha, beta))
-                print()
             self.loc = last_loc
             self.board[last_loc] = 1
             return best_move, curr_max, leaves
@@ -223,12 +207,6 @@ class ContestPlayer:
             curr_min = float('inf')
             last_loc = self.rival
             moves = self.get_sons(2) if sons else self.get_moves(last_loc)
-            # if sons:
-            #     print("Depth 2 sons")
-            #     print("Depth: [ {} ]".format(depth))
-            #     print(self.sons)
-            #     print(moves)
-            #     print()
             self.board[last_loc] = -1
 
             for d in moves:
@@ -250,11 +228,6 @@ class ContestPlayer:
                     curr_min = float('-inf')
                     break
 
-            if self.debug:
-                print("Agent {}".format(agent))
-                print("Just checked {} for depth {}".format(d, depth))
-                print("Best so far: {} with {}".format(best_move, curr_min))
-                print()
             #   Revert to current state
             self.rival = last_loc
             self.board[last_loc] = 2

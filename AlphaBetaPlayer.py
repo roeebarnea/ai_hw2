@@ -60,7 +60,6 @@ class AlphaBetaPlayer:
         elif not moves and turn == 1:  # We're out of moves but rival isn't
             return lose
 
-        # TODO: Figure out better heuristics, mine are shit :(
         return heuristics.h_minimax(self)
 
     def time_left(self):
